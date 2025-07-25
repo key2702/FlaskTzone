@@ -14,6 +14,7 @@ import time
 from math import radians, sin, cos, sqrt, atan2
 from twilio.rest import Client
 from dotenv import load_dotenv
+import urllib.parse 
 
 # Charger les variables d’environnement
 load_dotenv()
@@ -37,9 +38,16 @@ except Exception as e:
     model = None
 
 # ========== CONFIG BASE DE DONNEES ==========
-SERVER = 'localhost'
-DATABASE = 'ZonesafeDB'
-DRIVER = 'ODBC Driver 17 for SQL Server'
+DRIVER = os.getenv("DB_DRIVER")
+SERVER = os.getenv("DB_SERVER")
+DATABASE = os.getenv("DB_DATABASE")
+UID = os.getenv("DB_UID")
+PWD = os.getenv("DB_PWD")
+
+def get_sqlalchemy_engine():
+    connection_string = f"DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};UID={UID};PWD={PWD};"
+    params = urllib.parse.quote_plus(connection_string)
+    return create_engine(f"mssql+pyodbc:///?odbc_connect={params}")
 
 # ========== TWILIO ==========
 def send_whatsapp_alert(to_number, message_body):
@@ -64,15 +72,10 @@ def haversine_distance(coord1, coord2):
     lat1, lon1 = radians(coord1[0]), radians(coord1[1])
     lat2, lon2 = radians(coord2[0]), radians(coord2[1])
     dlat = lat2 - lat1
-    dlon = radians(coord2[1]) - radians(coord1[1])
+    dlon = lon2 - lon1
     a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return R * c
-
-def get_sqlalchemy_engine():
-    connection_string = f"DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};Trusted_Connection=yes;"
-    params = urllib.parse.quote_plus(connection_string)
-    return create_engine(f"mssql+pyodbc:///?odbc_connect={params}")
 
 def fetch_user_infrastructures(user_id):
     engine = get_sqlalchemy_engine()
