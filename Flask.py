@@ -22,13 +22,7 @@ load_dotenv()
 # ========== CONFIG FLASK ==========
 app = Flask(__name__)
 # Configuration CORS plus permissive
-CORS(app, resources={
-    r"/predict": {
-        "origins": ["http://localhost:5077", "http://127.0.0.1:5077"],
-        "methods": ["POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+CORS(app)
 
 # ========== CHARGEMENT DU MODELE ==========
 try:
